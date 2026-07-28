@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useMemo } from 'react'
 import { Chart, LineElement, PointElement, LinearScale, CategoryScale, ArcElement, Tooltip, Legend, Filler } from 'chart.js'
-import { sb } from '../lib/supabase'
+import { sbAdmin } from '../lib/supabase'
 import { PageHeader, StatCard, StatGrid, Table, Td, EmptyState, Loading, GamePill, ConfidenceDot, ago } from '../components/ui'
 
 Chart.register(LineElement, PointElement, LinearScale, CategoryScale, ArcElement, Tooltip, Legend, Filler)
@@ -38,8 +38,8 @@ export default function ScanAnalytics() {
   useEffect(() => {
     const since30d = new Date(Date.now() - 30 * 86400000).toISOString()
     Promise.all([
-      sb.from('scan_log').select('*').gte('created_at', since30d).order('created_at', { ascending: false }).limit(5000),
-      sb.from('scan_log').select('*').order('created_at', { ascending: false }).limit(500),
+      sbAdmin.from('scan_log').select('*').gte('created_at', since30d).order('created_at', { ascending: false }).limit(5000),
+      sbAdmin.from('scan_log').select('*').order('created_at', { ascending: false }).limit(500),
     ]).then(([agg, rec]) => {
       setScans(agg.data ?? [])
       setRecent(rec.data ?? [])

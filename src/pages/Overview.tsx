@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { sb } from '../lib/supabase'
+import { sb, sbAdmin } from '../lib/supabase'
 import { PageHeader, Panel, StatCard, StatGrid, Table, Td, Loading, Pill, ago } from '../components/ui'
 
 const GAMES = ['pokemon','mtg','yugioh','lorcana','onepiece','riftbound','digimon','dbsmasters','dbsfusion','swu']
@@ -16,7 +16,7 @@ export default function Overview() {
     Promise.all([
       sb.from('price_flags').select('*', { count: 'exact', head: true }).is('resolved_at', null),
       sb.from('sync_log').select('*').order('started_at', { ascending: false }).limit(1),
-      sb.from('scan_log').select('*', { count: 'exact', head: true }).gte('created_at', since),
+      sbAdmin.from('scan_log').select('*', { count: 'exact', head: true }).gte('created_at', since),
       Promise.all(GAMES.map(g => sb.from('card_prices').select('*', { count: 'exact', head: true }).eq('game', g).eq('kind', 'card'))),
     ]).then(([flags, sync, scans, counts]) => {
       setFlagCount(flags.count ?? 0)
