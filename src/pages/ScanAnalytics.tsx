@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState, useMemo } from 'react'
-import { Chart, LineElement, PointElement, LinearScale, CategoryScale, ArcElement, Tooltip, Legend, Filler } from 'chart.js'
+import { Chart, LineController, DoughnutController, LineElement, PointElement, LinearScale, CategoryScale, ArcElement, Tooltip, Legend, Filler } from 'chart.js'
 import { sbAdmin } from '../lib/supabase'
 import { PageHeader, StatCard, StatGrid, Table, Td, EmptyState, Loading, GamePill, ConfidenceDot, ago } from '../components/ui'
 
-Chart.register(LineElement, PointElement, LinearScale, CategoryScale, ArcElement, Tooltip, Legend, Filler)
+Chart.register(LineController, DoughnutController, LineElement, PointElement, LinearScale, CategoryScale, ArcElement, Tooltip, Legend, Filler)
 
 type Scan = {
   id: string; game: string | null; name: string | null; set_name: string | null
