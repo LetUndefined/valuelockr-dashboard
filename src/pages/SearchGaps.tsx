@@ -33,7 +33,7 @@ export default function SearchGaps() {
       <div className="p-7">
         <Panel title="No-Result Queries">
           <p className="text-[13px] text-muted mb-4">
-            Requires <code className="text-steel">search_log</code> inserts from the app after each search call. If empty, add a fire-and-forget insert to <code className="text-steel">services/supabase.ts</code>.
+            Requires <code className="text-price">search_log</code> inserts from the app after each search call. If empty, add a fire-and-forget insert to <code className="text-price">services/supabase.ts</code>.
           </p>
           {loading ? <Loading /> : rows.length ? (
             <Table heads={['Query', 'Game', 'Count', 'Last Searched']}>

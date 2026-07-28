@@ -8,7 +8,6 @@ export default function Overview() {
   const [flagCount, setFlagCount]   = useState<number | null>(null)
   const [lastSync, setLastSync]     = useState<any>(null)
   const [scansToday, setScansToday] = useState<number | null>(null)
-  const [vpsUp, setVpsUp]           = useState<boolean | null>(null)
   const [gameCounts, setGameCounts] = useState<{ game: string; count: number }[]>([])
 
   useEffect(() => {
@@ -18,13 +17,11 @@ export default function Overview() {
       sb.from('price_flags').select('*', { count: 'exact', head: true }).is('resolved_at', null),
       sb.from('sync_log').select('*').order('started_at', { ascending: false }).limit(1),
       sb.from('scan_log').select('*', { count: 'exact', head: true }).gte('created_at', since),
-      fetch('http://78.46.150.213:8787/last', { signal: AbortSignal.timeout(3500) }).then(() => true).catch(() => false),
       Promise.all(GAMES.map(g => sb.from('card_prices').select('*', { count: 'exact', head: true }).eq('game', g).eq('kind', 'card'))),
-    ]).then(([flags, sync, scans, vps, counts]) => {
+    ]).then(([flags, sync, scans, counts]) => {
       setFlagCount(flags.count ?? 0)
       setLastSync(sync.data?.[0] ?? null)
       setScansToday(scans.count ?? 0)
-      setVpsUp(vps as boolean)
       setGameCounts(GAMES.map((g, i) => ({ game: g, count: counts[i].count ?? 0 })))
     })
   }, [])
@@ -38,9 +35,8 @@ export default function Overview() {
         <StatGrid>
           <StatCard
             label="VPS Matcher"
-            value={vpsUp == null ? '…' : vpsUp ? 'Online' : 'Offline'}
-            sub="78.46.150.213:8787"
-            tone={vpsUp == null ? undefined : vpsUp ? 'good' : 'bad'}
+            value="78.46.150.213"
+            sub={<a href="http://78.46.150.213:8787/last" target="_blank" rel="noreferrer" className="text-price hover:underline">Open debug page ↗</a>}
           />
           <StatCard
             label="Open Flags"
@@ -67,7 +63,7 @@ export default function Overview() {
               {gameCounts.map(({ game, count }) => (
                 <tr key={game} className="hover:bg-white/2">
                   <Td>{game}</Td>
-                  <Td mono>{count.toLocaleString()}</Td>
+                  <Td mono>{count.toLocaleString('en-US')}</Td>
                   <Td><Pill tone={count > 0 ? 'green' : 'red'}>{count > 0 ? 'OK' : 'Empty'}</Pill></Td>
                 </tr>
               ))}

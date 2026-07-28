@@ -39,32 +39,39 @@ const groups = [
 export default function Sidebar() {
   return (
     <nav className="w-52 shrink-0 bg-surface border-r border-border flex flex-col overflow-y-auto">
-      <div className="px-4 py-5 border-b border-border">
-        <p className="text-[9px] font-bold tracking-[2px] text-gold">VALUELOCKR</p>
-        <p className="text-lg font-bold text-heading mt-0.5">Admin</p>
+      <div className="px-5 py-5 border-b border-border">
+        <p className="text-[9px] font-bold tracking-[3px] text-amber">VALUELOCKR</p>
+        <p className="text-[18px] font-bold text-white mt-0.5 tracking-tight">Admin</p>
       </div>
 
-      {groups.map((g) => (
-        <div key={g.label} className="pt-4 pb-1">
-          <p className="px-4 mb-1 text-[9px] font-bold tracking-[1.5px] uppercase text-muted">{g.label}</p>
-          {g.items.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) =>
-                `flex items-center gap-2.5 px-4 py-2 text-[13px] border-l-2 transition-colors ${
-                  isActive
-                    ? 'border-accent text-accent bg-accent/10'
-                    : 'border-transparent text-text hover:bg-white/5 hover:text-heading'
-                }`
-              }
-            >
-              <span className="w-4 text-center text-[15px]">{item.icon}</span>
-              {item.label}
-            </NavLink>
-          ))}
-        </div>
-      ))}
+      <div className="flex-1 py-2">
+        {groups.map((g) => (
+          <div key={g.label} className="mt-4 first:mt-2">
+            <p className="px-5 mb-1 text-[9px] font-semibold tracking-[1.5px] uppercase text-muted">{g.label}</p>
+            {g.items.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) =>
+                  `flex items-center gap-2.5 px-5 py-2.5 text-[13px] border-l-2 transition-colors ${
+                    isActive
+                      ? 'border-green text-green bg-green/8'
+                      : 'border-transparent text-sub hover:bg-white/4 hover:text-white'
+                  }`
+                }
+              >
+                <span className="w-4 text-center text-sm leading-none">{item.icon}</span>
+                {item.label}
+              </NavLink>
+            ))}
+          </div>
+        ))}
+      </div>
+
+      <div className="px-5 py-4 border-t border-border">
+        <p className="text-[10px] text-muted">valuelockr-admin</p>
+        <p className="text-[10px] text-muted/60">v0.1.0</p>
+      </div>
     </nav>
   )
 }

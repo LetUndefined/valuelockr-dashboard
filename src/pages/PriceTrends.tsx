@@ -56,7 +56,7 @@ export default function PriceTrends() {
             <Panel title="🔻 Biggest Fallers">
               {fallers.length ? (
                 <Table heads={['Card', 'Game', 'Current', '30d Avg', 'Change']}>
-                  {fallers.map(r => trow(r, 'text-steel'))}
+                  {fallers.map(r => trow(r, 'text-price'))}
                 </Table>
               ) : <EmptyState>No significant fallers.</EmptyState>}
             </Panel>

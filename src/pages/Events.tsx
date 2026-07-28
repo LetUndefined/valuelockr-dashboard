@@ -111,7 +111,7 @@ export default function Events() {
                   <Td><strong>{e.title}</strong></Td>
                   <Td>{e.location_name ?? '—'}</Td>
                   <Td><Pill tone={TYPE_TONE[e.event_type] ?? 'muted'}>{e.event_type}</Pill></Td>
-                  <Td>{e.url ? <a href={e.url} target="_blank" rel="noreferrer" className="text-steel text-[11px] hover:underline">Link ↗</a> : '—'}</Td>
+                  <Td>{e.url ? <a href={e.url} target="_blank" rel="noreferrer" className="text-price text-[11px] hover:underline">Link ↗</a> : '—'}</Td>
                   <Td><Btn size="sm" variant="danger" onClick={() => del(e.id)}>Delete</Btn></Td>
                 </tr>
               ))}

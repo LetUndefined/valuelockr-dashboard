@@ -58,7 +58,7 @@ export default function Sync() {
       <PageHeader title="Sync History" sub="Nightly sync runs and manual trigger" />
       <div className="p-7">
         <Panel title="Manual Sync" action={<Btn variant="warn" onClick={() => { setModal(true); setPwd(''); setPwdErr(false) }}>▶ Trigger Sync</Btn>}>
-          <p className="text-[13px] text-muted">Triggers the <code className="text-steel">sync-prices.yml</code> GitHub Actions workflow on main.</p>
+          <p className="text-[13px] text-muted">Triggers the <code className="text-price">sync-prices.yml</code> GitHub Actions workflow on main.</p>
         </Panel>
 
         <Panel title="Sync History">

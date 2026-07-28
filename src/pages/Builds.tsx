@@ -64,7 +64,7 @@ export default function Builds() {
                       <Td><Pill tone={statusTone(r)}>{r.conclusion ?? r.status}</Pill></Td>
                       <Td><span className="text-muted">{ago(r.run_started_at)}</span></Td>
                       <Td mono>{dur(r)}</Td>
-                      <Td><a href={r.html_url} target="_blank" rel="noreferrer" className="text-steel text-[11px] hover:underline">View ↗</a></Td>
+                      <Td><a href={r.html_url} target="_blank" rel="noreferrer" className="text-price text-[11px] hover:underline">View ↗</a></Td>
                     </tr>
                   ))}
                 </Table>
