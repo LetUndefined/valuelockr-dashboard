@@ -10,6 +10,7 @@ import ScanAnalytics from './pages/ScanAnalytics'
 import SearchGaps from './pages/SearchGaps'
 import Events from './pages/Events'
 import Builds from './pages/Builds'
+import Feedback from './pages/Feedback'
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
         <Route path="gaps"      element={<SearchGaps />} />
         <Route path="events"    element={<Events />} />
         <Route path="builds"    element={<Builds />} />
+        <Route path="feedback"  element={<Feedback />} />
       </Route>
     </Routes>
   )

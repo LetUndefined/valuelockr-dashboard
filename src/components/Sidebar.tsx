@@ -30,8 +30,9 @@ const groups = [
   {
     label: 'App',
     items: [
-      { to: '/events', icon: '◷', label: 'Events' },
-      { to: '/builds', icon: '⬢', label: 'Builds' },
+      { to: '/events',   icon: '◷', label: 'Events' },
+      { to: '/builds',   icon: '⬢', label: 'Builds' },
+      { to: '/feedback', icon: '✉', label: 'Feedback' },
     ],
   },
 ]
