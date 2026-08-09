@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { sb, sbAdmin } from '../lib/supabase'
+import { sbAdmin } from '../lib/supabase'
 import { PageHeader, Panel, Table, Td, Pill, Btn, EmptyState, Loading, ago } from '../components/ui'
 
 type FeedbackRow = {
@@ -23,8 +23,8 @@ export default function Feedback() {
     setLoading(true)
     const since = new Date(Date.now() - 30 * 86400000).toISOString()
     const [o, r] = await Promise.all([
-      sb.from('feedback').select('*').is('resolved_at', null).order('created_at', { ascending: false }).limit(200),
-      sb.from('feedback').select('*').not('resolved_at', 'is', null).gte('resolved_at', since).order('resolved_at', { ascending: false }).limit(100),
+      sbAdmin.from('feedback').select('*').is('resolved_at', null).order('created_at', { ascending: false }).limit(200),
+      sbAdmin.from('feedback').select('*').not('resolved_at', 'is', null).gte('resolved_at', since).order('resolved_at', { ascending: false }).limit(100),
     ])
     setOpen(o.data ?? [])
     setResolved(r.data ?? [])
