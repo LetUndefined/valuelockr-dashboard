@@ -305,6 +305,26 @@ function ApisPanel({ a }: { a: Overview["apis"] }) {
         ) : <p className="ad-small ad-dim">HTTP {tcggo.status} — no quota headers returned.</p>}
       </div>
       <div className="ad-block">
+        <h3>AI grading (OpenRouter)</h3>
+        {failed(a.openrouter) ? <Err msg={a.openrouter.error} /> : (
+          <div className="ad-row">
+            <span className="ad-row-label">Credits</span>
+            <Meter value={a.openrouter.used} max={a.openrouter.credits} />
+            <span className="ad-row-val">${(a.openrouter.credits - a.openrouter.used).toFixed(2)} left <span className="ad-dim">· ${a.openrouter.usage_monthly.toFixed(2)} this month</span></span>
+          </div>
+        )}
+      </div>
+      <div className="ad-block">
+        <h3>Ximilar</h3>
+        {failed(a.ximilar) ? <Err msg={a.ximilar.error} /> : a.ximilar.limit ? (
+          <div className="ad-row">
+            <span className="ad-row-label">Credits</span>
+            <Meter value={a.ximilar.used ?? 0} max={a.ximilar.limit} />
+            <span className="ad-row-val">{n(a.ximilar.used)} / {n(a.ximilar.limit)}</span>
+          </div>
+        ) : <p className="ad-dim ad-small">No credit info returned.</p>}
+      </div>
+      <div className="ad-block">
         <h3>App proxy (paid actions)</h3>
         {a.proxy_today.length === 0 ? <p className="ad-dim ad-small">No paid calls today.</p> : (
           <table className="ad-table">

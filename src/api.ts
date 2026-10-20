@@ -139,7 +139,7 @@ export interface Overview {
     feedback: { last_7d: number; recent: { category: string; message: string; screen: string; card_name: string | null; created_at: string; resolved_at: string | null }[] };
   }>;
   users: Maybe<{ users: number | null; lockrs: number; owned_cards: number; new_lockrs_7d: number; push_tokens: number }>;
-  apis: Maybe<{ proxy_today: { action: string; calls: number; callers: number }[]; ebay: Maybe<{ resource: string; limit: number; remaining: number; reset: string }[]> }>;
+  apis: Maybe<{ proxy_today: { action: string; calls: number; callers: number }[]; ebay: Maybe<{ resource: string; limit: number; remaining: number; reset: string }[]>; openrouter: Maybe<{ credits: number; used: number; usage_daily: number; usage_monthly: number }>; ximilar: Maybe<{ used: number | null; limit: number | null }> }>;
 }
 
 export interface NewSets {
