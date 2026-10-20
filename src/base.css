@@ -1,0 +1,19 @@
+/* Palette shared with valuelockr.com (website/src/styles.css). */
+:root {
+  color-scheme: dark;
+  --vault: #07080b;
+  --steel: #11141a;
+  --steel-2: #1b1f27;
+  --line: rgba(255, 242, 184, 0.14);
+  --line-strong: rgba(255, 242, 184, 0.3);
+  --gold: #f5c451;
+  --gold-light: #fff2b8;
+  --gold-dark: #eea61a;
+  --gold-ink: #1a1400;
+  --bone: #ece7da;
+  --dim: #a09a8c;
+  --display: "Big Shoulders Display Variable", "Arial Narrow", "Helvetica Neue", sans-serif;
+  --body: "Hanken Grotesk Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; background: var(--vault); -webkit-text-size-adjust: 100%; }
