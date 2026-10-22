@@ -29,6 +29,7 @@ interface Clip {
   price_source: string;
   custom_price: number | null;
   custom_currency: "EUR" | "USD" | null;
+  side: "qr" | "logo";
   display: Display | null;
 }
 
@@ -97,6 +98,7 @@ function ClipPanel({ clip, onChanged }: { clip: Clip; onChanged: () => void }) {
   const [source, setSource] = useState(clip.price_source ?? "auto");
   const [custom, setCustom] = useState(clip.custom_price != null ? String(clip.custom_price) : "");
   const [customCur, setCustomCur] = useState<"EUR" | "USD">(clip.custom_currency ?? "EUR");
+  const [side, setSide] = useState<"qr" | "logo">(clip.side ?? "qr");
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
   const search = async (e?: React.FormEvent) => {
@@ -131,8 +133,8 @@ function ClipPanel({ clip, onChanged }: { clip: Clip; onChanged: () => void }) {
     setBusy(true);
     setMsg(null);
     try {
-      const shown: Display = await clipOps("value", { clip_id: clip.id, price_source: source, custom_price: custom, custom_currency: customCur });
-      setMsg({ ok: true, text: `Shown value: ${money(shown.price, shown.currency)}. An online clip redraws in a few seconds.` });
+      const shown: Display = await clipOps("value", { clip_id: clip.id, price_source: source, custom_price: custom, custom_currency: customCur, side });
+      setMsg({ ok: true, text: `Showing ${money(shown.price, shown.currency)} with the ${side === "logo" ? "VL logo" : "QR code"}. An online clip redraws in a few seconds.` });
       onChanged();
     } catch (err) {
       setMsg({ ok: false, text: err instanceof Error ? err.message : String(err) });
@@ -184,7 +186,7 @@ function ClipPanel({ clip, onChanged }: { clip: Clip; onChanged: () => void }) {
         )}
       </div>
 
-      <h3>Value on screen</h3>
+      <h3>On screen</h3>
       <div className="ad-form-row">
         <select className="ad-select" value={source} onChange={(e) => setSource(e.target.value)}>
           {SOURCES.map(([k, label]) => <option key={k} value={k}>{label}</option>)}
@@ -198,7 +200,11 @@ function ClipPanel({ clip, onChanged }: { clip: Clip; onChanged: () => void }) {
             </select>
           </>
         ) : null}
-        <button className="ad-btn ad-btn-gold" onClick={saveValue} disabled={busy}>Update value</button>
+        <select className="ad-select" value={side} onChange={(e) => setSide(e.target.value as "qr" | "logo")} aria-label="Right side">
+          <option value="qr">QR code</option>
+          <option value="logo">VL logo</option>
+        </select>
+        <button className="ad-btn ad-btn-gold" onClick={saveValue} disabled={busy}>Update screen</button>
       </div>
 
       <h3>Change card</h3>
