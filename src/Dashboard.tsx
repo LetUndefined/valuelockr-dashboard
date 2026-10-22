@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AuthError, failed, ops, setSession, signIn, signOut, loadSession } from "./api";
 import type { Gaps, Job, MatcherStatus, NewSets, Overview, Workflow } from "./api";
 import { EventsTab, PricesTab } from "./Tools";
+import { ClipsTab } from "./Clips";
 import "./admin.css";
 
 // ── Formatting ──────────────────────────────────────────────────────────────
@@ -454,6 +455,7 @@ const TABS = [
   ["overview", "Overview"],
   ["prices", "Prices"],
   ["events", "Events"],
+  ["clips", "Clips"],
 ] as const;
 type Tab = (typeof TABS)[number][0];
 const tabFromHash = (): Tab => {
@@ -596,7 +598,7 @@ export default function Dashboard() {
 
       <main className="ad-main">
         {error ? <div className="ad-banner ad-banner-bad">{error}</div> : null}
-        {tab === "prices" ? <PricesTab /> : tab === "events" ? <EventsTab /> : !o ? <div className="ad-loading"><span className="ad-spin ad-spin-lg" />Collecting status…</div> : (
+        {tab === "prices" ? <PricesTab /> : tab === "events" ? <EventsTab /> : tab === "clips" ? <ClipsTab /> : !o ? <div className="ad-loading"><span className="ad-spin ad-spin-lg" />Collecting status…</div> : (
           <>
             <div className={`ad-hero ${issues.some((i) => i.tone === "bad") ? "ad-hero-bad" : issues.length ? "ad-hero-warn" : "ad-hero-ok"}`}>
               <div>

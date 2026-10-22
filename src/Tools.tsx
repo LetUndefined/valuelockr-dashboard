@@ -19,7 +19,7 @@ interface Flag {
   resolved_at?: string | null;
 }
 
-interface PriceRow {
+export interface PriceRow {
   game: string;
   tcgid: string;
   name: string;
@@ -44,14 +44,14 @@ export interface RadarEvent {
   url: string | null;
 }
 
-const eur = (v: number | null | undefined) => (v == null ? "—" : `€${Number(v).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+export const eur = (v: number | null | undefined) => (v == null ? "—" : `€${Number(v).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
 const usd = (v: number | null | undefined) => (v == null ? "—" : `$${Number(v).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
-const since = (t: string | null | undefined) => {
+export const since = (t: string | null | undefined) => {
   if (!t) return "—";
   const h = Math.round((Date.now() - Date.parse(t)) / 3600_000);
   return h < 24 ? `${h}h ago` : `${Math.round(h / 24)}d ago`;
 };
-const GAMES = ["pokemon", "mtg", "yugioh", "lorcana", "onepiece", "f1", "funko"];
+export const GAMES = ["pokemon", "mtg", "yugioh", "lorcana", "onepiece", "f1", "funko"];
 const EVENT_TYPES = [
   ["tournament", "Tournament"],
   ["trade", "Card show / trade"],
@@ -60,7 +60,7 @@ const EVENT_TYPES = [
   ["other", "Convention / other"],
 ];
 
-function Msg({ m }: { m: { ok: boolean; text: string } | null }) {
+export function Msg({ m }: { m: { ok: boolean; text: string } | null }) {
   if (!m) return null;
   return <p className={m.ok ? "ad-ok-msg" : "ad-err"}>{m.text}</p>;
 }

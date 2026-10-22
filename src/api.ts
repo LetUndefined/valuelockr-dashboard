@@ -83,6 +83,24 @@ export async function ops<T = any>(action: string, payload: object = {}): Promis
   return j as T;
 }
 
+// ValueLockr Clip control — the clip-admin function on the clip TEST project.
+// Same signed-in session; clip-admin verifies the token against this (live)
+// project and its own ADMIN_EMAILS.
+const CLIP_ADMIN_URL = "https://kkqotltawsnfrgyzjozs.supabase.co/functions/v1/clip-admin";
+
+export async function clipOps<T = any>(action: string, payload: object = {}): Promise<T> {
+  const s = await fresh();
+  const res = await fetch(CLIP_ADMIN_URL, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${s.access_token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ action, ...payload }),
+  });
+  const j = await res.json().catch(() => ({}));
+  if (res.status === 403) throw new AuthError("This account is not a clip admin");
+  if (!res.ok) throw new Error(j.error || `Request failed (${res.status})`);
+  return j as T;
+}
+
 // ── Response shapes (from supabase/functions/admin-ops) ─────────────────────
 export type Maybe<T> = T | { error: string };
 export const failed = (v: unknown): v is { error: string } => !!v && typeof v === "object" && "error" in (v as object);
