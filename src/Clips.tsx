@@ -57,6 +57,95 @@ const ago = (t: string | null) => {
   return s < 90 ? `${s}s ago` : s < 5400 ? `${Math.round(s / 60)}m ago` : since(t);
 };
 
+interface ClipLog {
+  id: number;
+  kind: "selftest" | "log";
+  created_at: string;
+  summary: { count?: number; ok?: number; timeouts?: number; avg_ms?: number; worst_ms?: number; wifi_off?: boolean; rssi?: number; heap?: number; fw?: string; uptime_s?: number } | null;
+  lines: string[];
+}
+
+// Ask an online clip to run test refreshes, then wait for its upload.
+function Diagnostics({ clipId }: { clipId: string }) {
+  const [count, setCount] = useState(5);
+  const [wifiOff, setWifiOff] = useState(false);
+  const [logs, setLogs] = useState<ClipLog[] | null>(null);
+  const [waiting, setWaiting] = useState(false);
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [open, setOpen] = useState<number | null>(null);
+
+  const load = useCallback(async () => {
+    const l: ClipLog[] = await clipOps("logs", { clip_id: clipId });
+    setLogs(l);
+    return l;
+  }, [clipId]);
+  useEffect(() => {
+    load().catch(() => {});
+  }, [load]);
+
+  const run = async () => {
+    setMsg(null);
+    try {
+      const before = logs?.[0]?.id ?? 0;
+      await clipOps("selftest", { clip_id: clipId, count, wifi_off: wifiOff });
+      setWaiting(true);
+      setMsg({ ok: true, text: `Test sent. ${count} refreshes take about ${count * 10} s; results appear here when the clip uploads them.` });
+      // Poll for the clip's upload (each refresh ~3–10 s + 3 s pause).
+      const deadline = Date.now() + (count * 25 + 30) * 1000;
+      while (Date.now() < deadline) {
+        await new Promise((r) => setTimeout(r, 4000));
+        const l = await load();
+        if ((l[0]?.id ?? 0) > before) {
+          setOpen(l[0].id);
+          setMsg(null);
+          setWaiting(false);
+          return;
+        }
+      }
+      setMsg({ ok: false, text: "No results came back. The clip may be offline or in deep sleep (press RESET), or still on older firmware." });
+    } catch (err) {
+      setMsg({ ok: false, text: err instanceof Error ? err.message : String(err) });
+    } finally {
+      setWaiting(false);
+    }
+  };
+
+  return (
+    <div className="cl-diag">
+      <h3>Diagnostics</h3>
+      <div className="ad-form-row">
+        <select className="ad-select" value={count} onChange={(e) => setCount(Number(e.target.value))} aria-label="Refreshes">
+          {[3, 5, 10].map((n) => <option key={n} value={n}>{n} refreshes</option>)}
+        </select>
+        <label className="ad-small cl-check"><input type="checkbox" checked={wifiOff} onChange={(e) => setWifiOff(e.target.checked)} /> WiFi off during test</label>
+        <button className="ad-btn ad-btn-gold" onClick={run} disabled={waiting}>{waiting ? <span className="ad-spin" /> : null}Run screen test</button>
+      </div>
+      <Msg m={msg} />
+      {logs && logs.length ? (
+        <div className="cl-logs">
+          {logs.map((l) => {
+            const s = l.summary;
+            const bad = (s?.timeouts ?? 0) > 0;
+            return (
+              <div key={l.id} className="cl-log">
+                <button type="button" className="cl-log-head" onClick={() => setOpen(open === l.id ? null : l.id)}>
+                  <span className={`ad-dot ${l.kind === "selftest" ? (bad ? "ad-bad" : "ad-ok") : "ad-warn"}`} />
+                  <b>{l.kind === "selftest" ? `Screen test ${s?.ok ?? "?"}/${s?.count ?? "?"} OK` : "Log"}</b>
+                  <span className="ad-small ad-dim">
+                    {new Date(l.created_at).toLocaleString("en-GB")}
+                    {s ? ` · avg ${s.avg_ms} ms · worst ${s.worst_ms} ms · WiFi ${s.wifi_off ? "off" : "on"} · RSSI ${s.rssi} · fw ${s.fw}` : ""}
+                  </span>
+                </button>
+                {open === l.id ? <pre className="cl-pre">{l.lines.join("\n")}</pre> : null}
+              </div>
+            );
+          })}
+        </div>
+      ) : logs ? <p className="ad-dim ad-small">No diagnostics uploaded yet.</p> : null}
+    </div>
+  );
+}
+
 export function ClipsTab() {
   const [clips, setClips] = useState<Clip[] | null>(null);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -250,6 +339,7 @@ function ClipPanel({ clip, onChanged }: { clip: Clip; onChanged: () => void }) {
       ) : null}
 
       <Msg m={msg} />
+      <Diagnostics clipId={clip.id} />
     </section>
   );
 }

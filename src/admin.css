@@ -828,3 +828,9 @@ textarea.ad-input { resize: vertical; }
 .cl-pick { width: 100%; text-align: left; font: inherit; color: inherit; cursor: pointer; }
 .cl-picked { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset; }
 .cl-confirm { display: grid; gap: 10px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--edge); }
+.cl-diag { margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--edge); }
+.cl-check { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.cl-logs { display: grid; gap: 8px; margin-top: 12px; }
+.cl-log { border: 1px solid var(--edge); border-radius: 12px; overflow: hidden; }
+.cl-log-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; width: 100%; padding: 10px 12px; background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.cl-pre { margin: 0; padding: 12px; max-height: 360px; overflow: auto; font-size: 12px; line-height: 1.45; background: rgba(0, 0, 0, 0.35); color: var(--bone); white-space: pre-wrap; word-break: break-word; }
