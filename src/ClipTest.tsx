@@ -28,7 +28,7 @@ export default function ClipTest({ clipId }: { clipId: string }) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`${CLIP_CARD_URL}?id=${encodeURIComponent(clipId)}`)
+    fetch(`${CLIP_CARD_URL}?id=${encodeURIComponent(clipId)}`, { cache: "no-store" })
       .then(async (r) => {
         if (r.status === 404) throw new Error("No clip with this id.");
         if (!r.ok) throw new Error(`Couldn't load this clip (${r.status}).`);
