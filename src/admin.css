@@ -799,3 +799,24 @@ textarea.ad-input { resize: vertical; }
   .ad-hide-sm { display: none; }
   .ad-item { flex-wrap: wrap; }
 }
+
+/* ── Clip QR test page (/test/clip/c/<id>) ── public, phone-first ── */
+.ct-root { padding: max(24px, env(safe-area-inset-top)) 16px 32px; }
+.ct-brand { font-size: 14px; letter-spacing: 0.18em; }
+.ct-card {
+  margin-top: 20px;
+  padding: 20px;
+  border: 1px solid var(--edge);
+  border-radius: 20px;
+  background: var(--panel);
+}
+.ct-name { margin: 0; font-family: var(--display); font-size: 34px; font-weight: 800; line-height: 1.05; }
+.ct-sub { margin: 6px 0 0; color: var(--dim); }
+.ct-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.ct-chip { padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; font-size: 13px; color: var(--dim); }
+.ct-chip.ct-gold { color: var(--gold); border-color: var(--line-strong); }
+.ct-label { margin-top: 22px; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); }
+.ct-price { margin-top: 4px; font-family: var(--display); font-size: 48px; font-weight: 800; color: var(--gold-light); }
+.ct-meta { margin-top: 4px; font-size: 13px; color: var(--dim); }
+.ct-foot { margin-top: 24px; font-size: 13px; color: var(--dim); }
+.ct-foot code { color: var(--bone); }
