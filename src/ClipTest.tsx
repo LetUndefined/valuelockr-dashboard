@@ -17,11 +17,17 @@ type Card = {
   grade?: string | null;
   image_url?: string | null;
   price_eur?: number | null;
+  price?: number | null;
+  currency?: "EUR" | "USD";
   price_updated_at?: string | null;
 };
 
-const eur = (v: number | null | undefined) =>
-  v == null ? "No price" : "€" + v.toLocaleString("nl-NL", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const money = (v: number | null | undefined, cur?: string) =>
+  v == null
+    ? "No price"
+    : cur === "USD"
+      ? "$" + v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+      : "€" + v.toLocaleString("nl-NL", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export default function ClipTest({ clipId }: { clipId: string }) {
   const [card, setCard] = useState<Card | null>(null);
@@ -64,7 +70,7 @@ export default function ClipTest({ clipId }: { clipId: string }) {
             <span className={`ct-chip${card.grade ? " ct-gold" : ""}`}>{card.grade ?? "Raw"}</span>
           </div>
           <div className="ct-label">Market value</div>
-          <div className="ct-price">{eur(card.price_eur)}</div>
+          <div className="ct-price">{money(card.price ?? card.price_eur, card.currency)}</div>
           {updated && <div className="ct-meta">Updated {updated}</div>}
         </div>
       )}

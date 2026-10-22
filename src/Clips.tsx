@@ -14,6 +14,9 @@ interface Display {
   grade?: string | null;
   image_url?: string | null;
   price_eur?: number | null;
+  price?: number | null;
+  currency?: "EUR" | "USD";
+  price_source?: string;
   slot?: string | null;
 }
 
@@ -23,8 +26,29 @@ interface Clip {
   battery_mv: number | null;
   fw_version: string | null;
   last_seen: string | null;
+  price_source: string;
+  custom_price: number | null;
+  custom_currency: "EUR" | "USD" | null;
   display: Display | null;
 }
+
+// Each source in its own currency — Cardmarket is EUR, TCGPlayer and
+// PriceCharting are USD; nothing is relabelled.
+const SOURCES: [string, string][] = [
+  ["auto", "Auto (collection value, €)"],
+  ["cardmarket", "Cardmarket (€)"],
+  ["tcgplayer", "TCGPlayer ($)"],
+  ["pricecharting", "PriceCharting ($)"],
+  ["graded", "Graded price (€) — needs a grade"],
+  ["custom", "Custom value"],
+];
+
+const money = (v: number | null | undefined, cur: string | undefined) =>
+  v == null
+    ? "No price"
+    : cur === "USD"
+      ? `$${v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+      : `€${v.toLocaleString("nl-NL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 const ago = (t: string | null) => {
   if (!t) return "never";
@@ -70,6 +94,9 @@ function ClipPanel({ clip, onChanged }: { clip: Clip; onChanged: () => void }) {
   const [grade, setGrade] = useState(d?.grade ?? "");
   const [slot, setSlot] = useState(clip.slot ?? "");
   const [busy, setBusy] = useState(false);
+  const [source, setSource] = useState(clip.price_source ?? "auto");
+  const [custom, setCustom] = useState(clip.custom_price != null ? String(clip.custom_price) : "");
+  const [customCur, setCustomCur] = useState<"EUR" | "USD">(clip.custom_currency ?? "EUR");
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
   const search = async (e?: React.FormEvent) => {
@@ -88,10 +115,24 @@ function ClipPanel({ clip, onChanged }: { clip: Clip; onChanged: () => void }) {
     setMsg(null);
     try {
       const shown: Display = await clipOps("set", { clip_id: clip.id, game: picked.game, tcgid: picked.tcgid, grade, slot });
-      setMsg({ ok: true, text: `Sent to the clip: ${shown.name} · ${shown.price_eur != null ? eur(shown.price_eur) : "no price"}. An online clip redraws in a few seconds.` });
+      setMsg({ ok: true, text: `Sent to the clip: ${shown.name} · ${money(shown.price ?? shown.price_eur, shown.currency)}. An online clip redraws in a few seconds.` });
       setPicked(null);
       setRows(null);
       setQ("");
+      onChanged();
+    } catch (err) {
+      setMsg({ ok: false, text: err instanceof Error ? err.message : String(err) });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const saveValue = async () => {
+    setBusy(true);
+    setMsg(null);
+    try {
+      const shown: Display = await clipOps("value", { clip_id: clip.id, price_source: source, custom_price: custom, custom_currency: customCur });
+      setMsg({ ok: true, text: `Shown value: ${money(shown.price, shown.currency)}. An online clip redraws in a few seconds.` });
       onChanged();
     } catch (err) {
       setMsg({ ok: false, text: err instanceof Error ? err.message : String(err) });
@@ -132,12 +173,32 @@ function ClipPanel({ clip, onChanged }: { clip: Clip; onChanged: () => void }) {
             <div className="ad-price-meta">
               <b>{d.name}</b>
               <span className="ad-small ad-dim">{[d.set, d.number && `#${d.number}`, d.grade, d.slot].filter(Boolean).join(" · ")}</span>
-              <span className="ad-small ad-mono">{d.price_eur != null ? eur(d.price_eur) : "No price"}</span>
+              <span className="ad-small ad-mono">
+                {money(d.price ?? d.price_eur, d.currency)}
+                <span className="ad-dim"> · {SOURCES.find(([k]) => k === (d.price_source ?? "auto"))?.[1]}</span>
+              </span>
             </div>
           </div>
         ) : (
           <p className="ad-dim ad-small">{d?.state === "unlinked" ? "Claimed, no card linked." : "Not set up."}</p>
         )}
+      </div>
+
+      <h3>Value on screen</h3>
+      <div className="ad-form-row">
+        <select className="ad-select" value={source} onChange={(e) => setSource(e.target.value)}>
+          {SOURCES.map(([k, label]) => <option key={k} value={k}>{label}</option>)}
+        </select>
+        {source === "custom" ? (
+          <>
+            <input className="ad-input" inputMode="decimal" placeholder="e.g. 250" value={custom} onChange={(e) => setCustom(e.target.value)} />
+            <select className="ad-select" value={customCur} onChange={(e) => setCustomCur(e.target.value as "EUR" | "USD")}>
+              <option value="EUR">EUR</option>
+              <option value="USD">USD</option>
+            </select>
+          </>
+        ) : null}
+        <button className="ad-btn ad-btn-gold" onClick={saveValue} disabled={busy}>Update value</button>
       </div>
 
       <h3>Change card</h3>
