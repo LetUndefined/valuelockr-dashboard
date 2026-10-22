@@ -15,6 +15,7 @@ type Card = {
   set?: string | null;
   variant?: string | null;
   grade?: string | null;
+  image_url?: string | null;
   price_eur?: number | null;
   price_updated_at?: string | null;
 };
@@ -55,6 +56,7 @@ export default function ClipTest({ clipId }: { clipId: string }) {
         </div>
       ) : (
         <div className="ct-card">
+          {card.image_url && <img className="ct-img" src={card.image_url} alt={card.name} />}
           <h1 className="ct-name">{card.name}</h1>
           <p className="ct-sub">{[card.set, card.number && `#${card.number}`].filter(Boolean).join(" · ")}</p>
           <div className="ct-chips">
