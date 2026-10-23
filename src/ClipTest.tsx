@@ -28,6 +28,9 @@ type Card = {
   market_source?: string | null;
   market_converted?: boolean;
   updated_at?: string | null;
+  // Show mode: the normal price and the discount while a show runs.
+  base_price?: number | null;
+  show_pct?: number | null;
   // The vendor's own photos of this copy (vendor-photos bucket paths) and
   // the centering they confirmed on them.
   photo_front?: string | null;
@@ -98,6 +101,11 @@ export default function ClipTest({ code }: { code: string }) {
           </div>
           <div className="ct-label">Price at {card.vendor}</div>
           <div className="ct-price">{money(card.price, card.currency)}</div>
+          {card.base_price != null && card.show_pct != null ? (
+            <div className="ct-meta">
+              <s>{money(card.base_price, card.currency)}</s> · show price, {card.show_pct}% off
+            </div>
+          ) : null}
           {card.market != null ? (
             <div className="ct-meta">
               Market reference: {money(card.market, card.currency)}
