@@ -97,16 +97,15 @@ export async function vendorOps<T = any>(action: string, payload: object = {}): 
   return j as T;
 }
 
-// ValueLockr Clip control — the clip-admin function on the clip TEST project.
-// Same signed-in session; clip-admin verifies the token against this (live)
-// project and its own ADMIN_EMAILS.
-const CLIP_ADMIN_URL = "https://kkqotltawsnfrgyzjozs.supabase.co/functions/v1/clip-admin";
+// ValueLockr Clip fleet control — the clip-admin function on live (admin
+// allowlist, same as admin-ops).
+const CLIP_ADMIN_URL = `${SUPABASE_URL}/functions/v1/clip-admin`;
 
 export async function clipOps<T = any>(action: string, payload: object = {}): Promise<T> {
   const s = await fresh();
   const res = await fetch(CLIP_ADMIN_URL, {
     method: "POST",
-    headers: { Authorization: `Bearer ${s.access_token}`, "Content-Type": "application/json" },
+    headers: { apikey: ANON, Authorization: `Bearer ${s.access_token}`, "Content-Type": "application/json" },
     body: JSON.stringify({ action, ...payload }),
   });
   const j = await res.json().catch(() => ({}));

@@ -1,49 +1,40 @@
 import { useCallback, useEffect, useState } from "react";
-import { clipOps, ops } from "./api";
-import { GAMES, Msg, PriceRow, eur, since } from "./Tools";
+import { clipOps } from "./api";
+import { Msg, since } from "./Tools";
 
-// ValueLockr Clips (test project): see what each clip shows, pick a card from
-// the live catalogue and push it to the clip. Nothing changes on a clip until
-// "Update clip" is pressed.
+// ValueLockr Clips across all vendors (live). Vendors pick cards, prices and
+// screen options in the app; here the admin sees the fleet, pushes a
+// refresh, runs a self-test / reads logs, and can revoke a clip (it then
+// shows nothing and accepts nothing) or restore it.
 
 interface Display {
-  state: "unclaimed" | "unlinked" | "card";
+  state: "unclaimed" | "unlinked" | "card" | "inactive";
   name?: string;
   number?: string | null;
   set?: string | null;
   grade?: string | null;
   image_url?: string | null;
-  price_eur?: number | null;
   price?: number | null;
   currency?: "EUR" | "USD";
-  price_source?: string;
   slot?: string | null;
+  item_status?: string;
 }
 
 interface Clip {
   id: string;
+  vendor: string | null;
+  vendor_item_id: string | null;
+  public_code: string;
+  status: "active" | "lost" | "revoked";
+  side: "qr" | "logo";
+  invert: boolean;
   slot: string | null;
   battery_mv: number | null;
   fw_version: string | null;
   last_seen: string | null;
-  price_source: string;
-  custom_price: number | null;
-  custom_currency: "EUR" | "USD" | null;
-  side: "qr" | "logo";
-  invert: boolean;
+  claimed_at: string | null;
   display: Display | null;
 }
-
-// Each source in its own currency — Cardmarket is EUR, TCGPlayer and
-// PriceCharting are USD; nothing is relabelled.
-const SOURCES: [string, string][] = [
-  ["auto", "Auto (collection value, €)"],
-  ["cardmarket", "Cardmarket (€)"],
-  ["tcgplayer", "TCGPlayer ($)"],
-  ["pricecharting", "PriceCharting ($)"],
-  ["graded", "Graded price (€) — needs a grade"],
-  ["custom", "Custom value"],
-];
 
 const money = (v: number | null | undefined, cur: string | undefined) =>
   v == null
@@ -178,40 +169,15 @@ export function ClipsTab() {
 
 function ClipPanel({ clip, onChanged }: { clip: Clip; onChanged: () => void }) {
   const d = clip.display;
-  const [game, setGame] = useState("pokemon");
-  const [q, setQ] = useState("");
-  const [rows, setRows] = useState<PriceRow[] | null>(null);
-  const [picked, setPicked] = useState<PriceRow | null>(null);
-  const [grade, setGrade] = useState(d?.grade ?? "");
-  const [slot, setSlot] = useState(clip.slot ?? "");
-  const [busy, setBusy] = useState(false);
-  const [source, setSource] = useState(clip.price_source ?? "auto");
-  const [custom, setCustom] = useState(clip.custom_price != null ? String(clip.custom_price) : "");
-  const [customCur, setCustomCur] = useState<"EUR" | "USD">(clip.custom_currency ?? "EUR");
-  const [side, setSide] = useState<"qr" | "logo">(clip.side ?? "qr");
-  const [invert, setInvert] = useState(clip.invert ?? false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [busy, setBusy] = useState(false);
 
-  const search = async (e?: React.FormEvent) => {
-    e?.preventDefault();
-    setMsg(null);
-    try {
-      setRows(await ops("price-search", { game, q }));
-    } catch (err) {
-      setMsg({ ok: false, text: err instanceof Error ? err.message : String(err) });
-    }
-  };
-
-  const update = async () => {
-    if (!picked) return;
+  const act = async (fn: () => Promise<unknown>, done: string) => {
     setBusy(true);
     setMsg(null);
     try {
-      const shown: Display = await clipOps("set", { clip_id: clip.id, game: picked.game, tcgid: picked.tcgid, grade, slot });
-      setMsg({ ok: true, text: `Sent to the clip: ${shown.name} · ${money(shown.price ?? shown.price_eur, shown.currency)}. An online clip redraws in a few seconds.` });
-      setPicked(null);
-      setRows(null);
-      setQ("");
+      await fn();
+      setMsg({ ok: true, text: done });
       onChanged();
     } catch (err) {
       setMsg({ ok: false, text: err instanceof Error ? err.message : String(err) });
@@ -220,42 +186,34 @@ function ClipPanel({ clip, onChanged }: { clip: Clip; onChanged: () => void }) {
     }
   };
 
-  const saveValue = async () => {
-    setBusy(true);
-    setMsg(null);
-    try {
-      const shown: Display = await clipOps("value", { clip_id: clip.id, price_source: source, custom_price: custom, custom_currency: customCur, side, invert });
-      setMsg({ ok: true, text: `Showing ${money(shown.price, shown.currency)} with the ${side === "logo" ? "VL logo" : "QR code"}. An online clip redraws in a few seconds.` });
-      onChanged();
-    } catch (err) {
-      setMsg({ ok: false, text: err instanceof Error ? err.message : String(err) });
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const redraw = async () => {
-    setMsg(null);
-    try {
-      await clipOps("refresh", { clip_id: clip.id });
-      setMsg({ ok: true, text: "Refresh sent." });
-    } catch (err) {
-      setMsg({ ok: false, text: err instanceof Error ? err.message : String(err) });
-    }
-  };
+  const statusTone = clip.status === "active" ? "ad-ok" : clip.status === "lost" ? "ad-warn" : "ad-bad";
 
   return (
     <section className="ad-panel ad-wide">
       <header className="ad-panel-head">
         <div>
-          <h2 className="ad-mono">{clip.id}</h2>
+          <h2 className="ad-mono"><span className={`ad-dot ${statusTone}`} /> {clip.id}</h2>
           <p className="ad-sub">
-            Last seen {ago(clip.last_seen)}
+            {clip.vendor ?? "Unclaimed"} · {clip.status}
+            {clip.slot ? ` · ${clip.slot}` : ""} · last seen {ago(clip.last_seen)}
             {clip.fw_version ? ` · fw ${clip.fw_version}` : ""}
             {clip.battery_mv ? ` · ${(clip.battery_mv / 1000).toFixed(2)} V` : ""}
           </p>
         </div>
-        <button className="ad-btn ad-btn-ghost" onClick={redraw}>Refresh screen</button>
+        <div className="ad-form-row">
+          <button className="ad-btn ad-btn-ghost" disabled={busy} onClick={() => act(() => clipOps("refresh", { clip_id: clip.id }), "Refresh sent.")}>Refresh screen</button>
+          {clip.status === "revoked" ? (
+            <button className="ad-btn ad-btn-ghost" disabled={busy} onClick={() => act(() => clipOps("revoke", { clip_id: clip.id, revoked: false }), "Restored.")}>Restore</button>
+          ) : (
+            <button
+              className="ad-btn ad-btn-ghost"
+              disabled={busy}
+              onClick={() => window.confirm(`Revoke ${clip.id}? It goes dark and can't be used until restored.`) && act(() => clipOps("revoke", { clip_id: clip.id, revoked: true }), "Revoked.")}
+            >
+              Revoke
+            </button>
+          )}
+        </div>
       </header>
 
       <div className="cl-now">
@@ -267,79 +225,20 @@ function ClipPanel({ clip, onChanged }: { clip: Clip; onChanged: () => void }) {
               <b>{d.name}</b>
               <span className="ad-small ad-dim">{[d.set, d.number && `#${d.number}`, d.grade, d.slot].filter(Boolean).join(" · ")}</span>
               <span className="ad-small ad-mono">
-                {money(d.price ?? d.price_eur, d.currency)}
-                <span className="ad-dim"> · {SOURCES.find(([k]) => k === (d.price_source ?? "auto"))?.[1]}</span>
+                {money(d.price, d.currency)}
+                <span className="ad-dim"> · {clip.side === "logo" ? "VL logo" : "QR"}{clip.invert ? " · inverted" : ""}</span>
               </span>
             </div>
           </div>
         ) : (
-          <p className="ad-dim ad-small">{d?.state === "unlinked" ? "Claimed, no card linked." : "Not set up."}</p>
-        )}
-      </div>
-
-      <h3>On screen</h3>
-      <div className="ad-form-row">
-        <select className="ad-select" value={source} onChange={(e) => setSource(e.target.value)}>
-          {SOURCES.map(([k, label]) => <option key={k} value={k}>{label}</option>)}
-        </select>
-        {source === "custom" ? (
-          <>
-            <input className="ad-input" inputMode="decimal" placeholder="e.g. 250" value={custom} onChange={(e) => setCustom(e.target.value)} />
-            <select className="ad-select" value={customCur} onChange={(e) => setCustomCur(e.target.value as "EUR" | "USD")}>
-              <option value="EUR">EUR</option>
-              <option value="USD">USD</option>
-            </select>
-          </>
-        ) : null}
-        <select className="ad-select" value={side} onChange={(e) => setSide(e.target.value as "qr" | "logo")} aria-label="Right side">
-          <option value="qr">QR code</option>
-          <option value="logo">VL logo</option>
-        </select>
-        <label className="ad-small cl-check"><input type="checkbox" checked={invert} onChange={(e) => setInvert(e.target.checked)} /> Inverted (white on black)</label>
-        <button className="ad-btn ad-btn-gold" onClick={saveValue} disabled={busy}>Update screen</button>
-      </div>
-
-      <h3>Change card</h3>
-      <form className="ad-form-row" onSubmit={search}>
-        <select className="ad-select" value={game} onChange={(e) => setGame(e.target.value)}>{GAMES.map((g) => <option key={g}>{g}</option>)}</select>
-        <input className="ad-input" placeholder="Card name, e.g. Charizard" value={q} onChange={(e) => setQ(e.target.value)} />
-        <button className="ad-btn ad-btn-gold">Search</button>
-      </form>
-
-      {rows == null ? null : rows.length === 0 ? <p className="ad-dim ad-small">No cards found.</p> : (
-        <div className="ad-price-list cl-results">
-          {rows.map((r) => (
-            <button
-              type="button"
-              key={r.tcgid}
-              className={`ad-price-row cl-pick${picked?.tcgid === r.tcgid ? " cl-picked" : ""}`}
-              onClick={() => setPicked(r)}
-            >
-              {r.image_url ? <img src={r.image_url} alt="" loading="lazy" /> : <div className="ad-scan-ph" />}
-              <div className="ad-price-meta">
-                <b>{r.name}</b>
-                <span className="ad-small ad-dim">{r.set_name ?? "—"}{r.card_number ? ` · #${r.card_number}` : ""}</span>
-                <span className="ad-small ad-mono">{eur(r.cardmarket_eur)}</span>
-              </div>
-            </button>
-          ))}
-        </div>
-      )}
-
-      {picked ? (
-        <div className="cl-confirm">
-          <p className="ad-small">
-            Selected <b>{picked.name}</b> · {picked.set_name ?? "—"}{picked.card_number ? ` #${picked.card_number}` : ""}
+          <p className="ad-dim ad-small">
+            {d?.state === "unlinked" ? "Claimed, no card linked." : d?.state === "inactive" ? "Dark (lost or revoked)." : "Not claimed by a vendor."}
           </p>
-          <div className="ad-form-row">
-            <label className="ad-mini">Grade<input className="ad-input" placeholder="e.g. PSA 10 (empty = raw)" value={grade} onChange={(e) => setGrade(e.target.value)} /></label>
-            <label className="ad-mini">Slot<input className="ad-input" placeholder="e.g. Box A · 01" maxLength={24} value={slot} onChange={(e) => setSlot(e.target.value)} /></label>
-          </div>
-          <button className="ad-btn ad-btn-gold" onClick={update} disabled={busy}>
-            {busy ? <span className="ad-spin" /> : null}Update clip
-          </button>
-        </div>
-      ) : null}
+        )}
+        {clip.status === "active" && d?.state === "card" ? (
+          <a className="ad-small" href={`/c/${clip.public_code}`} target="_blank" rel="noreferrer">Buyer page ↗</a>
+        ) : null}
+      </div>
 
       <Msg m={msg} />
       <Diagnostics clipId={clip.id} />

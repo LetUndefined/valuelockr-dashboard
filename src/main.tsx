@@ -6,12 +6,12 @@ import "@fontsource-variable/big-shoulders-display";
 import "@fontsource-variable/hanken-grotesk";
 import "./base.css";
 
-// Public test target for the QR on a ValueLockr Clip; everything else is the
-// signed-in ops dashboard.
-const clipTest = window.location.pathname.match(/^\/test\/clip\/c\/(VL-[0-9A-Fa-f]{12})\/?$/);
+// Public buyer page behind a ValueLockr Clip's QR (/c/<public code>);
+// everything else is the signed-in ops dashboard.
+const clipPage = window.location.pathname.match(/^\/c\/([0-9a-f]{16})\/?$/);
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    {clipTest ? <ClipTest clipId={clipTest[1].toUpperCase()} /> : <Dashboard />}
+    {clipPage ? <ClipTest code={clipPage[1]} /> : <Dashboard />}
   </React.StrictMode>
 );
