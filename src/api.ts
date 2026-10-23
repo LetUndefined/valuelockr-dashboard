@@ -83,6 +83,20 @@ export async function ops<T = any>(action: string, payload: object = {}): Promis
   return j as T;
 }
 
+// Vendor application review — the vendor-admin function (feature/vendors).
+export async function vendorOps<T = any>(action: string, payload: object = {}): Promise<T> {
+  const s = await fresh();
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/vendor-admin`, {
+    method: "POST",
+    headers: { apikey: ANON, Authorization: `Bearer ${s.access_token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ action, ...payload }),
+  });
+  const j = await res.json().catch(() => ({}));
+  if (res.status === 403) throw new AuthError("This account is not an admin");
+  if (!res.ok) throw new Error(j.error || `Request failed (${res.status})`);
+  return j as T;
+}
+
 // ValueLockr Clip control — the clip-admin function on the clip TEST project.
 // Same signed-in session; clip-admin verifies the token against this (live)
 // project and its own ADMIN_EMAILS.

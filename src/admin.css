@@ -834,3 +834,12 @@ textarea.ad-input { resize: vertical; }
 .cl-log { border: 1px solid var(--edge); border-radius: 12px; overflow: hidden; }
 .cl-log-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; width: 100%; padding: 10px 12px; background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
 .cl-pre { margin: 0; padding: 12px; max-height: 360px; overflow: auto; font-size: 12px; line-height: 1.45; background: rgba(0, 0, 0, 0.35); color: var(--bone); white-space: pre-wrap; word-break: break-word; }
+
+/* ── Vendors tab ── */
+.vd-list { display: grid; gap: 12px; }
+.vd-card { display: grid; gap: 10px; padding: 14px; border: 1px solid var(--edge); border-radius: 14px; }
+.vd-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; }
+.vd-facts { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; margin: 0; font-size: 13px; }
+.vd-facts dt { color: var(--dim); }
+.vd-facts dd { margin: 0; overflow-wrap: anywhere; }
+.vd-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
