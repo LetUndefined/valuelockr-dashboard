@@ -28,9 +28,17 @@ type Card = {
   market_source?: string | null;
   market_converted?: boolean;
   updated_at?: string | null;
+  // The vendor's own photos of this copy (vendor-photos bucket paths) and
+  // the centering they confirmed on them.
+  photo_front?: string | null;
+  photo_back?: string | null;
+  centering_front?: { lr: string; tb: string } | null;
+  centering_back?: { lr: string; tb: string } | null;
 };
 
-const SOURCE: Record<string, string> = { cardmarket: "Cardmarket", tcgplayer: "TCGPlayer", pricecharting: "PriceCharting", graded: "graded sales" };
+const photoUrl = (path: string) => `${SUPABASE_URL}/storage/v1/object/public/vendor-photos/${path}`;
+
+const SOURCE: Record<string, string> = { cardmarket: "Cardmarket", tcgplayer: "TCGPlayer", pricecharting: "Last sold", graded: "graded sales" };
 
 const money = (v: number | null | undefined, cur?: string) =>
   v == null
@@ -42,6 +50,8 @@ const money = (v: number | null | undefined, cur?: string) =>
 export default function ClipTest({ code }: { code: string }) {
   const [card, setCard] = useState<Card | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [side, setSide] = useState<"front" | "back">("front");
+  const [zoom, setZoom] = useState<string | null>(null);
 
   useEffect(() => {
     fetch(`${SUPABASE_URL}/rest/v1/rpc/clip_public`, {
@@ -74,7 +84,11 @@ export default function ClipTest({ code }: { code: string }) {
         </div>
       ) : (
         <div className="ct-card">
-          {card.image_url && <img className="ct-img" src={card.image_url} alt={card.name} />}
+          {card.photo_front || card.photo_back ? (
+            <Photos card={card} side={side} setSide={setSide} onZoom={setZoom} />
+          ) : (
+            card.image_url && <img className="ct-img" src={card.image_url} alt={card.name} />
+          )}
           <h1 className="ct-name">{card.name}</h1>
           <p className="ct-sub">{[card.set, card.number && `#${card.number}`, card.variant].filter(Boolean).join(" · ")}</p>
           <div className="ct-chips">
@@ -94,8 +108,41 @@ export default function ClipTest({ code }: { code: string }) {
         </div>
       )}
 
+      {zoom && (
+        <div className="ct-zoom" onClick={() => setZoom(null)} role="button" aria-label="Close">
+          <img src={zoom} alt="" />
+        </div>
+      )}
+
       <p className="ct-foot">
         {card?.vendor ? `${card.vendor}${card.vendor_country ? ` · ${card.vendor_country}` : ""} · ` : ""}Prices by ValueLockr.
+      </p>
+    </div>
+  );
+}
+
+// The vendor's photos of this exact copy, front/back, tap to zoom, with the
+// centering they measured. Falls back to the catalogue image when none.
+function Photos({ card, side, setSide, onZoom }: { card: Card; side: "front" | "back"; setSide: (s: "front" | "back") => void; onZoom: (url: string) => void }) {
+  const has = { front: !!card.photo_front, back: !!card.photo_back };
+  const shown = has[side] ? side : has.front ? "front" : "back";
+  const path = shown === "front" ? card.photo_front : card.photo_back;
+  const centering = shown === "front" ? card.centering_front : card.centering_back;
+  return (
+    <div className="ct-photos">
+      {path && <img className="ct-img ct-photo" src={photoUrl(path)} alt={`${card.name}, ${shown}`} onClick={() => onZoom(photoUrl(path))} />}
+      {has.front && has.back && (
+        <div className="ct-tabs">
+          {(["front", "back"] as const).map((s) => (
+            <button key={s} className={`ct-tab${shown === s ? " ct-on" : ""}`} onClick={() => setSide(s)}>
+              {s === "front" ? "Front" : "Back"}
+            </button>
+          ))}
+        </div>
+      )}
+      <p className="ct-meta">
+        {centering ? `Centering ${centering.lr} left/right · ${centering.tb} top/bottom, measured by the vendor` : "Photo of this exact card by the vendor"}
+        {" · tap to zoom"}
       </p>
     </div>
   );

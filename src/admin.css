@@ -821,6 +821,13 @@ textarea.ad-input { resize: vertical; }
 .ct-foot { margin-top: 24px; font-size: 13px; color: var(--dim); }
 .ct-foot code { color: var(--bone); }
 .ct-img { display: block; width: min(260px, 70%); margin: 0 auto 18px; border-radius: 12px; box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55); }
+.ct-photos { margin-bottom: 18px; }
+.ct-photo { cursor: zoom-in; margin-bottom: 12px; }
+.ct-tabs { display: flex; gap: 8px; justify-content: center; }
+.ct-tab { padding: 6px 16px; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--dim); font: inherit; font-size: 13px; cursor: pointer; }
+.ct-tab.ct-on { color: var(--gold); border-color: var(--line-strong); }
+.ct-zoom { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.92); cursor: zoom-out; touch-action: pinch-zoom; overflow: auto; }
+.ct-zoom img { max-width: 100%; max-height: 100%; object-fit: contain; }
 
 /* ── Clips tab ── */
 .cl-now { display: grid; gap: 6px; margin: 4px 0 18px; }
